@@ -6,7 +6,7 @@ from skimage import draw, filters, measure, morphology
 from scipy import spatial, optimize
 
 def compute_fr(truth, predicted, threshold, dist_thres):
-    truth_labels = measure.label(truth)
+    truth_labels = measure.label(truth.astype(int))
     predicted_max = filters.rank.maximum((predicted * 255).astype(numpy.uint8), selem=morphology.square(3))
     temp = predicted.copy()
     temp[predicted < 0.99 * (predicted_max / 255.)] = 0
@@ -24,16 +24,15 @@ def compute_fr(truth, predicted, threshold, dist_thres):
         assignment = distances[row_ind, col_ind]
     assignment = assignment < numpy.repeat(dist_thres, assignment.size)
 
-    return assignment.sum() / len(truth_props), len(pred_props) - assignment.sum()
+    return assignment.sum(), len(pred_props) - assignment.sum(), len(truth_props)
 
 def FROC(truth, predicted, dist_thres=3):
     thresholds = numpy.linspace(0.1, 0.9, num=25)
-    TPR, FP = [], []
+    tps, fps, number_positives = [], [], []
     for threshold in thresholds:
-    # for threshold in [0.5]:
-        tpr, fp = compute_fr(truth, predicted, threshold, dist_thres)
-        TPR.append(tpr), FP.append(fp)
-    return TPR, FP
+        tp, fp, number_positive = compute_fr(truth, predicted, threshold, dist_thres)
+        tps.append(tp), fps.append(fp), number_positives.append(number_positive)
+    return tps, fps, number_positives
 
 if __name__ == "__main__":
 
@@ -41,27 +40,28 @@ if __name__ == "__main__":
     import random
 
     truths, predictions = [], []
-    for _ in range(5):
-        centers = numpy.random.randint(12, 500, size=(25, 2))
+    for _ in range(30):
+        centers = numpy.random.randint(12, 500, size=(random.randint(20, 64), 2))
         truth = numpy.zeros((512, 512))
-        for (r, c) in centers[:-random.randint(0,2)]:
+        for (r, c) in centers[:random.randint(len(centers)-1, len(centers) + 1)]:
             rr, cc = draw.circle(r, c, radius=5, shape=truth.shape)
             truth[rr, cc] = 1
 
         predicted = numpy.zeros((512, 512))
-        i = random.randint(0,2)
-        predicted[centers[i:, 0] + 1, centers[i:, 1] + 2] = 1
+        predicted[centers[:, 0], centers[:, 1]] = 1
         predicted = filters.gaussian(predicted, sigma=5)
         predicted /= predicted.max()
 
         truths.append(truth), predictions.append(predicted)
 
-    TPR, FP = [], []
+    TP, FP, nums = [], [], []
     for truth, predicted in tqdm(zip(truths, predictions)):
-        tpr, fp = FROC(truth, predicted, 3)
-        TPR.append(tpr), FP.append(fp)
+        tp, fp, num = FROC(truth, predicted, 3)
+        TP.append(tp), FP.append(fp), nums.append(num)
 
     fig, ax = pyplot.subplots()
-    ax.plot([*numpy.mean(FP, axis=0), 0], [*numpy.mean(TPR, axis=0), 0])
+    ax.plot([*(numpy.sum(FP, axis=0) / len(truths)), 0],
+            [*(numpy.sum(TP, axis=0) / numpy.sum(nums, axis=0)), 0], marker="o")
 
+    ax.set_ylim(0, 1)
     pyplot.show()
