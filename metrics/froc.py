@@ -5,8 +5,22 @@ from matplotlib import pyplot
 from skimage import draw, filters, measure, morphology
 from scipy import spatial, optimize
 
-def compute_fr(truth_labels, pred_labels, dist_thres):
+def compute_tp_fp(truth_labels, pred_labels, dist_thres):
+    """
+    Compute the true and false positive detections from the labels. We use the
+    linear sum assignment which solves the Hungarian problem to identify the nearest
+    neighbors in truth and pred labels
 
+    :param truth_labels: A 2D `numpy.ndarray` of `uint` where each detected spots
+                         in ground truth mask is labeled
+    :param truth_labels: A 2D `numpy.ndarray` of `uint` where each detected spots
+                         in predicted maskis labeled
+    :param dist_thres: A distance threshold to consider two annotations
+
+    :returns : The number of true positive detections
+               The number of false positive detections
+               The number of positive detections
+    """
     truth_props = measure.regionprops(truth_labels)
     pred_props = measure.regionprops(pred_labels)
 
@@ -22,19 +36,31 @@ def compute_fr(truth_labels, pred_labels, dist_thres):
     return assignment.sum(), len(pred_props) - assignment.sum(), len(truth_props)
 
 def FROC(truth, predicted, dist_thres=3):
+    """
+    Computes the free-response receiver operating characteristic from the ground
+    truth and the predictions
 
+    :param truth: A 2D binary `numpy.ndarray` of ground truth
+    :param predicted: A 2D `numpy.ndarray` of predictions in range [0, 1]
+    :param dist_thres: A distance threshold to consider two annotations as positive
+
+    :returns : The number of true positive detections as a function of threshold
+               The number of false positive detections as a function of threshold
+               The number of positive detections
+               The thresholds used for computation
+    """
     truth_labels = measure.label(truth.astype(int))
     predicted_max = filters.rank.maximum((predicted * 255).astype(numpy.uint8), selem=morphology.square(5))
     predicted = predicted.copy()
     predicted[predicted < 0.99 * (predicted_max / 255.)] = 0
 
-    thresholds = numpy.linspace(0.1, 0.9, num=25)
+    thresholds = numpy.linspace(0.05, 0.95, num=25)
     tps, fps, number_positives = [], [], []
     for threshold in thresholds:
         pred_labels = measure.label((predicted >= threshold).astype(int))
-        tp, fp, number_positive = compute_fr(truth_labels, pred_labels, dist_thres)
+        tp, fp, number_positive = compute_tp_fp(truth_labels, pred_labels, dist_thres)
         tps.append(tp), fps.append(fp), number_positives.append(number_positive)
-    return tps, fps, number_positives
+    return tps, fps, number_positives, thresholds
 
 if __name__ == "__main__":
 
@@ -58,7 +84,7 @@ if __name__ == "__main__":
 
     TP, FP, nums = [], [], []
     for truth, predicted in tqdm(zip(truths, predictions)):
-        tp, fp, num = FROC(truth, predicted, 3)
+        tp, fp, num, thresholds = FROC(truth, predicted, 3)
         TP.append(tp), FP.append(fp), nums.append(num)
 
     fig, ax = pyplot.subplots()
