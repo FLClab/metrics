@@ -5,12 +5,7 @@ from matplotlib import pyplot
 from skimage import draw, filters, measure, morphology
 from scipy import spatial, optimize
 
-def compute_fr(truth, predicted, threshold, dist_thres):
-    truth_labels = measure.label(truth.astype(int))
-    predicted_max = filters.rank.maximum((predicted * 255).astype(numpy.uint8), selem=morphology.square(3))
-    temp = predicted.copy()
-    temp[predicted < 0.99 * (predicted_max / 255.)] = 0
-    pred_labels = measure.label((temp >= threshold).astype(int))
+def compute_fr(truth_labels, pred_labels, dist_thres):
 
     truth_props = measure.regionprops(truth_labels)
     pred_props = measure.regionprops(pred_labels)
@@ -27,10 +22,17 @@ def compute_fr(truth, predicted, threshold, dist_thres):
     return assignment.sum(), len(pred_props) - assignment.sum(), len(truth_props)
 
 def FROC(truth, predicted, dist_thres=3):
+
+    truth_labels = measure.label(truth.astype(int))
+    predicted_max = filters.rank.maximum((predicted * 255).astype(numpy.uint8), selem=morphology.square(5))
+    predicted = predicted.copy()
+    predicted[predicted < 0.99 * (predicted_max / 255.)] = 0
+
     thresholds = numpy.linspace(0.1, 0.9, num=25)
     tps, fps, number_positives = [], [], []
     for threshold in thresholds:
-        tp, fp, number_positive = compute_fr(truth, predicted, threshold, dist_thres)
+        pred_labels = measure.label((predicted >= threshold).astype(int))
+        tp, fp, number_positive = compute_fr(truth_labels, pred_labels, dist_thres)
         tps.append(tp), fps.append(fp), number_positives.append(number_positive)
     return tps, fps, number_positives
 
