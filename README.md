@@ -9,7 +9,7 @@ To install the package, _i.e._ to be able to use localy this package, one should
 git clone https://github.com/antho214/metrics
 pip install -e metrics
 ```
-To verify the installation one should try to import pygithub from a python console.
+To verify the installation one should try to import `metrics` from a python console.
 ```python
 import metrics
 ```
