@@ -29,7 +29,6 @@ def DSC(truth, predicted):
     """
     truth, predicted = truth.astype(bool), predicted.astype(bool)
     intersection = (truth * predicted).sum()
-    # print(2 * intersection / (truth.sum() + predicted.sum()), intersection, truth.sum(), predicted.sum())
     return 2 * intersection / (truth.sum() + predicted.sum())
 
 def SBD(truth, predicted, radius=2, foreground=None, **kwargs):
