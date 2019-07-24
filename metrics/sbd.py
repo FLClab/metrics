@@ -5,7 +5,7 @@ from skimage import draw, morphology
 from scipy import signal
 from matplotlib import pyplot
 
-def boundary(mask, radius):
+def boundary(mask, radius=1):
     """
     Computes the boundary of the mask with given radius
 
@@ -14,10 +14,9 @@ def boundary(mask, radius):
 
     :returns : A 2D binary `numpy.ndarray` of the boundary
     """
-    radius = radius // 2
-    disk = morphology.disk(radius)
-    out = signal.convolve2d(mask, morphology.disk(radius), mode="same")
-    return (out != 0) & (out != disk.sum())
+    selem = morphology.square(radius * 2)
+    out = signal.convolve2d(mask, selem, mode="same")
+    return (out != 0) & (out != selem.sum())
 
 def DSC(truth, predicted):
     """
@@ -103,11 +102,11 @@ if __name__ == "__main__":
     ax[0].imshow(image1)
     ax[1].imshow(image2)
 
-    score = SBD(image1, image2, radius=10)
+    score = SBD(image1, image2, radius=1)
     print(score)
 
-    image3 = numpy.ones((28, 28))
-    bound = boundary(image3, 3)
+    # image3 = numpy.ones((28, 28))
+    bound = boundary(image1, 1)
     fig, ax = pyplot.subplots()
     ax.imshow(bound.astype(int))
     pyplot.show()
