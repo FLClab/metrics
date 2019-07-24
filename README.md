@@ -23,9 +23,13 @@ metrics.SBD(truth, prediction)
 ```
 where `truth` and `prediction` are of type `numpy.ndarray`.
 
-## Collaborate
+## Contribute
 
-To implement a metric in this package, a user should create a python module in folder `./metrics/` and associate this module in the `__init__` file of the folder. As a mean of consistency of the package, a module should be lowercased while a function should be uppercased. For example, if a user wanted to implement a mean square error (MSE) module
+There are two options to contribute in this package i) implementation of a common metric (_i.e._ Dice, Jaccard index, etc.) or ii) implementation of a non-common metric (_i.e._ a metric that requires multiple functions).
+
+To implement a common metric in this package, a user should write the function inside the utilitaries module `./metrics/utils.py` and associate this function in the `__init__` file of the folder. As a mean of consistency of the package, a function should be lowercased.
+
+To implement a non-common metric in this package, a user should create a python module in folder `./metrics/` and associate this module in the `__init__` file of the folder. As a mean of consistency of the package, a module should be lowercased while a function should be uppercased. For example, if a user wanted to implement a mean square error (MSE) module
 ```python
 % inside mse.py 
 import numpy 
