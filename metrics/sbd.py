@@ -37,7 +37,7 @@ def SBD(truth, predicted, radius=2, foreground=None, **kwargs):
     dice = []
     where_true, where_pred = numpy.argwhere(bound_truth), numpy.argwhere(bound_pred)
     for pos in numpy.vstack((where_true, where_pred)):
-        dice.append(utils.DSC(subarray(truth, pos=pos, radius=radius),
+        dice.append(utils.dice(subarray(truth, pos=pos, radius=radius),
                         subarray(predicted, pos=pos, radius=radius)))
     return numpy.mean(dice)
 

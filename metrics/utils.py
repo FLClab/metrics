@@ -15,7 +15,7 @@ def boundary(mask, radius=1):
     out = signal.convolve2d(mask, selem, mode="same")
     return (out != 0) & (out != selem.sum())
 
-def DSC(truth, predicted):
+def dice(truth, predicted):
     """
     Computes the dice similarity coefficient
 
