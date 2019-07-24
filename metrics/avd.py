@@ -5,18 +5,7 @@ from skimage import draw, morphology
 from scipy import signal, spatial
 from matplotlib import pyplot
 
-def boundary(mask, radius=1):
-    """
-    Computes the boundary of the mask with given radius
-
-    :param mask: A 2D binary `numpy.ndarray`
-    :param radius: A radius in which to look for neighborhood pixels
-
-    :returns : A 2D binary `numpy.ndarray` of the boundary
-    """
-    selem = morphology.square(radius * 2)
-    out = signal.convolve2d(mask, selem, mode="same")
-    return (out != 0) & (out != selem.sum())
+import utils
 
 def remove_intersection(truth, predicted):
     """
@@ -40,7 +29,7 @@ def directed_avg_Hausdorff(truth, predicted):
     :return : The directed average Hausdorff distance
     """
     nointer_truth = remove_intersection(truth, predicted)
-    bound_pred = boundary(predicted)
+    bound_pred = utils.boundary(predicted)
     if (not numpy.any(bound_pred)) or (not numpy.any(truth)):
         return 0
     where_true, where_pred = numpy.argwhere(nointer_truth), numpy.argwhere(bound_pred)

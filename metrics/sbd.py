@@ -5,31 +5,7 @@ from skimage import draw, morphology
 from scipy import signal
 from matplotlib import pyplot
 
-def boundary(mask, radius=1):
-    """
-    Computes the boundary of the mask with given radius
-
-    :param mask: A 2D binary `numpy.ndarray`
-    :param radius: A radius in which to look for neighborhood pixels
-
-    :returns : A 2D binary `numpy.ndarray` of the boundary
-    """
-    selem = morphology.square(radius * 2)
-    out = signal.convolve2d(mask, selem, mode="same")
-    return (out != 0) & (out != selem.sum())
-
-def DSC(truth, predicted):
-    """
-    Computes the dice similarity coefficient
-
-    :param truth: A 2D binary `numpy.ndarray` of ground truth
-    :param predicted: A 2D binary `numpy.ndarray` of prediction
-
-    :returns : Dice similarity coefficient
-    """
-    truth, predicted = truth.astype(bool), predicted.astype(bool)
-    intersection = (truth * predicted).sum()
-    return 2 * intersection / (truth.sum() + predicted.sum())
+import utils
 
 def SBD(truth, predicted, radius=2, foreground=None, **kwargs):
     """
@@ -57,11 +33,11 @@ def SBD(truth, predicted, radius=2, foreground=None, **kwargs):
     if isinstance(foreground, (type(None))):
         foreground = numpy.ones(truth.shape)
     truth, predicted = (truth * foreground).astype(bool), (predicted * foreground).astype(bool)
-    bound_truth, bound_pred = boundary(truth, radius=radius), boundary(predicted, radius=radius)
+    bound_truth, bound_pred = utils.boundary(truth, radius=radius), utils.boundary(predicted, radius=radius)
     dice = []
     where_true, where_pred = numpy.argwhere(bound_truth), numpy.argwhere(bound_pred)
     for pos in numpy.vstack((where_true, where_pred)):
-        dice.append(DSC(subarray(truth, pos=pos, radius=radius),
+        dice.append(utils.DSC(subarray(truth, pos=pos, radius=radius),
                         subarray(predicted, pos=pos, radius=radius)))
     return numpy.mean(dice)
 
