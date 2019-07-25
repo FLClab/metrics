@@ -5,7 +5,7 @@ from skimage import draw, morphology
 from scipy import signal
 from matplotlib import pyplot
 
-import utils
+from . import utils
 
 def SBD(truth, predicted, radius=2, foreground=None, **kwargs):
     """
