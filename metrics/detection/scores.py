@@ -132,14 +132,3 @@ class scores:
         """
         f1 = self.f1_score
         return f1 / (2 - f1)
-
-if __name__ == "__main__" :
-
-    truth, predicted = numpy.random.rand(1000, 2) * 50, numpy.random.rand(1000, 2) * 50
-    scorer = scores(truth, predicted, threshold=1)
-
-    from matplotlib import pyplot
-    fig, ax = pyplot.subplots()
-    ax.scatter(truth[:, 0], truth[:, 1], color="black")
-    ax.scatter(predicted[:, 0], predicted[:, 1], color="green")
-    pyplot.show()
