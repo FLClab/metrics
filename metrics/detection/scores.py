@@ -50,8 +50,8 @@ class scores:
 
     def _assign_hungarian(self):
         """
-        Assigns each thruth detections to its nearest predicted detections. 
-        We consider a positive detections if it lies within a certain distance threshold. 
+        Assigns each thruth detections to its nearest predicted detections.
+        We consider a positive detections if it lies within a certain distance threshold.
         See `scipy.optimize.linear_sum_assignment` for more details about hungarian algo.
 
         :returns : The index of truth and predicted couples
@@ -62,7 +62,7 @@ class scores:
 
         # Compute the pairwise distance matrice
         D = spatial.distance.cdist(self.truth, self.predicted, metric='euclidean')
-        
+
         # We remove all points without neighbors in a radius of value `threshold`
         false_positives = numpy.sum(D < self.threshold, axis=0) == 0
         false_negatives = numpy.sum(D < self.threshold, axis=1) == 0
@@ -71,21 +71,21 @@ class scores:
         D = D[~false_negatives][:, ~false_positives]
         truth_indices = truth_indices[~false_negatives]
         pred_indices = pred_indices[~false_positives]
-        
+
         # Apply the hungarian algorithm,
         # using log on the distance helps getting better matches
-        truth_couple, pred_couple = optimize.linear_sum_assignment(numpy.log(D))
-        
+        truth_couple, pred_couple = optimize.linear_sum_assignment(numpy.log(D + 1e+6))
+
         # Check if all distances are smaller than the threshold
         distances = D[truth_couple, pred_couple]
         truth_couple = truth_couple[distances < self.threshold]
         pred_couple = pred_couple[distances < self.threshold]
-        
+
         truth_couple = truth_indices[truth_couple]
         pred_couple = pred_indices[pred_couple]
 
         return truth_couple, pred_couple
-    
+
 
     @property
     def tpr(self):
@@ -220,4 +220,3 @@ if __name__ == '__main__':
         ax.plot([x1[0], x2[0]], [x1[1], x2[1]], 'r-')
         print(f'GT {s.truth_couple[i]}, pred {s.pred_couple[i]}, dist {numpy.linalg.norm(x1 - x2)}')
     plt.show()
-    
