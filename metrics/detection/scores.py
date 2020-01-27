@@ -74,6 +74,8 @@ class scores:
         
         # Apply the hungarian algorithm,
         # using log on the distance helps getting better matches
+        # Because of the log, we need to ensure there is no Distance of 0
+        D[D == 0] = 1e-6
         truth_couple, pred_couple = optimize.linear_sum_assignment(numpy.log(D))
         
         # Check if all distances are smaller than the threshold
