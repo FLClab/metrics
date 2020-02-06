@@ -23,10 +23,18 @@ class scores:
         self.predicted = predicted
         self.threshold = threshold
 
-        if algorithm is 'nearest':
-            self.truth_couple, self.pred_couple = self._assign_nearest()
-        elif algorithm is 'hungarian':
-            self.truth_couple, self.pred_couple = self._assign_hungarian()
+        # Verifies if attribute exists, else defaults in hungarian
+        try:
+            assign = getattr(self, f"_assign_{algorithm}")
+        except AttributeError:
+            warnings.warn(f"The chosen algorithm `{algorithm}` does not exists. Defaults in `hungarian`.", category=UserWarning)
+            assign = getattr(self, "_assign_hungarian")
+
+        # Returns truth_couple and pred_couple to 0 if truth or predicted are empty
+        if (len(truth) < 1) or (len(predicted) < 1):
+            self.truth_couple, self.pred_couple = [], []
+        else:
+            self.truth_couple, self.pred_couple = assign()
 
     def _assign_nearest(self):
         """
@@ -62,7 +70,7 @@ class scores:
 
         # Compute the pairwise distance matrice
         D = spatial.distance.cdist(self.truth, self.predicted, metric='euclidean')
-
+        
         # We remove all points without neighbors in a radius of value `threshold`
         false_positives = numpy.sum(D < self.threshold, axis=0) == 0
         false_negatives = numpy.sum(D < self.threshold, axis=1) == 0
@@ -76,7 +84,7 @@ class scores:
         # using log on the distance helps getting better matches
         # Because of the log, we need to ensure there is no Distance of 0
         truth_couple, pred_couple = optimize.linear_sum_assignment(numpy.log(D + 1e-6))
-        
+
 
         # Check if all distances are smaller than the threshold
         distances = D[truth_couple, pred_couple]
