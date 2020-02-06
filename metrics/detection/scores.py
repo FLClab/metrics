@@ -27,7 +27,7 @@ class scores:
         try:
             assign = getattr(self, f"_assign_{algorithm}")
         except AttributeError:
-            warnings.warn(f"The chosen algorithm `{algorithm}` does not exists. Defaults in `hungarian`.", category=UserWarning)
+            warnings.warn(f"The chosen algorithm `{algorithm}` does not exist. Defaults in `hungarian`.", category=UserWarning)
             assign = getattr(self, "_assign_hungarian")
 
         # Returns truth_couple and pred_couple to 0 if truth or predicted are empty
@@ -70,7 +70,7 @@ class scores:
 
         # Compute the pairwise distance matrice
         D = spatial.distance.cdist(self.truth, self.predicted, metric='euclidean')
-        
+
         # We remove all points without neighbors in a radius of value `threshold`
         false_positives = numpy.sum(D < self.threshold, axis=0) == 0
         false_negatives = numpy.sum(D < self.threshold, axis=1) == 0
@@ -96,6 +96,32 @@ class scores:
 
         return truth_couple, pred_couple
 
+    @property
+    def true_positive(self):
+        """
+        Computes the number of true positive
+
+        :returns : The number of true positive
+        """
+        return len(self.pred_couple)
+
+    @property
+    def false_positive(self):
+        """
+        Computes the number of false_positive
+
+        :returns : The number of false positive
+        """
+        return len(self.predicted) - self.true_positive
+
+    @property
+    def false_negative(self):
+        """
+        Computes the number of false negative
+
+        :returns : The number of false negative
+        """
+        return len(self.truth) - self.true_positive
 
     @property
     def tpr(self):
@@ -113,10 +139,7 @@ class scores:
 
         :returns : A false negative rate score
         """
-        true_positive = len(self.pred_couple)
-        false_positive = len(self.predicted) - true_positive
-        false_negative = len(self.truth) - true_positive
-        return false_negative / (true_positive + false_positive)
+        return self.false_negative / (sel.true_positive + self.false_positive)
 
     @property
     def fpr(self):
@@ -128,10 +151,7 @@ class scores:
         """
         warnings.warn("Using the false positive rate as a score metric in the case truth predictions does not make sense as there are no true negative labels.",
                         category=UserWarning)
-        true_positive = len(self.pred_couple)
-        false_positive = len(self.predicted) - true_positive
-        false_negative = len(self.truth) - true_positive
-        return false_positive / false_negative
+        return self.false_positive / self.false_negative
 
     @property
     def accuracy(self):
@@ -149,9 +169,7 @@ class scores:
 
         :returns : A precision score
         """
-        true_positive = len(self.pred_couple)
-        false_positive = len(self.predicted) - true_positive
-        return true_positive / (true_positive + false_positive)
+        return self.true_positive / (self.true_positive + self.false_positive)
 
     @property
     def recall(self):
@@ -160,9 +178,7 @@ class scores:
 
         :returns : A recall score
         """
-        true_positive = len(self.pred_couple)
-        false_negative = len(self.truth) - true_positive
-        return true_positive / (true_positive + false_negative)
+        return self.true_positive / (self.true_positive + self.false_negative)
 
     @property
     def f1_score(self):
