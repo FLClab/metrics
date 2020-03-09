@@ -96,6 +96,32 @@ class scores:
 
         return truth_couple, pred_couple
 
+    def get_coupled(self):
+        """
+        Retreives the coupled indices of the truth and predicted
+
+        :returns : A `tuple` of truth and predicted coupled
+        """
+        return self.truth_couple, self.pred_couple
+
+    def get_false_positives(self):
+        """
+        Retreives the indices of the false positive detections
+
+        :returns : A `list` of indices that are false positive detections
+        """
+        if len(self.predicted) > 0:
+            return list(set(range(len(self.predicted))) - set(self.pred_couple))
+
+    def get_false_negatives(self):
+        """
+        Retreives the indices of the false negative detections
+
+        :returns : A `list` of indices that are false negative detections
+        """
+        if len(self.truth) > 0:
+            return list(set(range(len(self.truth))) - set(self.truth_couple))
+
     @property
     def true_positive(self):
         """
