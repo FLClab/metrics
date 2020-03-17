@@ -18,7 +18,7 @@ def confusion_matrix(truth, predicted, normalized=True):
     truth, predicted = truth.astype(bool), predicted.astype(bool)
     cm = metrics.confusion_matrix(truth, predicted)
     if normalized:
-        cm = cm / cm.sum(axis=1)[:, numpy.newaxis]
+        cm = cm / (cm.sum(axis=1)[:, numpy.newaxis] + 1e-12)
     return cm
 
 def iou(truth, predicted):
