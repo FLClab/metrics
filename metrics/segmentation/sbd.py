@@ -6,6 +6,7 @@ from scipy import signal
 from matplotlib import pyplot
 
 from . import utils
+from . import commons
 
 def SBD(truth, predicted, radius=2, foreground=None, **kwargs):
     """
@@ -37,7 +38,7 @@ def SBD(truth, predicted, radius=2, foreground=None, **kwargs):
     dice = []
     where_true, where_pred = numpy.argwhere(bound_truth), numpy.argwhere(bound_pred)
     for pos in numpy.vstack((where_true, where_pred)):
-        dice.append(utils.dice(subarray(truth, pos=pos, radius=radius),
+        dice.append(commons.dice(subarray(truth, pos=pos, radius=radius),
                         subarray(predicted, pos=pos, radius=radius)))
     return numpy.mean(dice)
 
