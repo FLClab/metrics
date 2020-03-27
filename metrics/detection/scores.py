@@ -112,6 +112,7 @@ class scores:
         """
         if len(self.predicted) > 0:
             return list(set(range(len(self.predicted))) - set(self.pred_couple))
+        return []
 
     def get_false_negatives(self):
         """
@@ -121,6 +122,7 @@ class scores:
         """
         if len(self.truth) > 0:
             return list(set(range(len(self.truth))) - set(self.truth_couple))
+        return []
 
     @property
     def true_positive(self):
