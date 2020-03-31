@@ -111,8 +111,8 @@ class scores:
         :returns : A `list` of indices that are false positive detections
         """
         if len(self.predicted) > 0:
-            return list(set(range(len(self.predicted))) - set(self.pred_couple))
-        return []
+            return numpy.array(list(set(range(len(self.predicted))) - set(self.pred_couple)))
+        return numpy.array([])
 
     def get_false_negatives(self):
         """
@@ -121,8 +121,8 @@ class scores:
         :returns : A `list` of indices that are false negative detections
         """
         if len(self.truth) > 0:
-            return list(set(range(len(self.truth))) - set(self.truth_couple))
-        return []
+            return numpy.array(list(set(range(len(self.truth))) - set(self.truth_couple)))
+        return numpy.array([])
 
     @property
     def true_positive(self):
