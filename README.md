@@ -6,7 +6,7 @@ This package contains simple implementations of common metrics used in segmentat
 
 To install the package, _i.e._ to be able to use localy this package, one should do the following 
 ```bash
-git clone https://github.com/antho214/metrics
+git clone https://github.com/FLClab/metrics
 pip install -e metrics
 ```
 To verify the installation one should try to import `metrics` from a python console.
