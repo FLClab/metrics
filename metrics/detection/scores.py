@@ -549,12 +549,14 @@ class IOUDetectionError(DetectionError):
         """
         Computes the cost matrix between all objects
         """
+        from tqdm import tqdm
+
         # Masks without 0
         masks_truth = self.truth == numpy.unique(self.truth)[1:, numpy.newaxis, numpy.newaxis]
         masks_prediction = self.predicted == numpy.unique(self.predicted)[1:, numpy.newaxis, numpy.newaxis]
 
         self.cost_matrix = numpy.zeros((len(masks_truth), len(masks_prediction)))
-        for j, mask_truth in enumerate(masks_truth):
+        for j, mask_truth in enumerate(tqdm(masks_truth)):
             for i, mask_prediction in enumerate(masks_prediction):
                 if numpy.any(mask_truth * mask_prediction):
                     iou = commons.iou(mask_truth, mask_prediction)
@@ -582,7 +584,7 @@ class IOUDetectionError(DetectionError):
 
         # Creates the axes
         if isinstance(axes, type(None)):
-            fig, axes = pyplot.subplots(1, 2)
+            fig, axes = pyplot.subplots(1, 2, sharex=True, sharey=True)
 
         axes[0].imshow(self.truth)
         for obj in missed_objs:
@@ -640,53 +642,53 @@ if __name__ == '__main__':
     #############################################
     # Test CentroidDetectionError
     #############################################
-
-    dmatch = 5
-    nb_pred = 90
-    nb_gt = 100
-
-    numpy.random.seed(2)
-
-    truth = numpy.random.random_sample((nb_gt, 2)) * 100
-    pred = numpy.random.random_sample((nb_pred, 2)) * 100
-
-    s = CentroidDetectionError(truth, pred, dmatch, algorithm='nearest')
-    print(f'Truth index {s.truth_couple}')
-    print(f'Pred index {s.pred_couple}')
-    # print(f'False negatives {s.get_false_negatives()}')
-    # print(f'False positives {s.get_false_positives()}')
-
-    import matplotlib.pyplot as plt
-    fig, axes = plt.subplots(1, 2, sharex=True, sharey=True)
-    ax = axes[0]
-    ax.scatter(truth[:, 0], truth[:, 1], marker='o')
-    ax.scatter(pred[:, 0], pred[:, 1], marker='x')
-    for i in range(len(s.truth_couple)):
-        x1 = truth[s.truth_couple[i]]
-        x2 = pred[s.pred_couple[i]]
-        ax.text(*x1, str(s.truth_couple[i]))
-        ax.text(*x2, str(s.pred_couple[i]))
-        ax.plot([x1[0], x2[0]], [x1[1], x2[1]], 'r-')
-        # print(f'GT {s.truth_couple[i]}, pred {s.pred_couple[i]}, dist {numpy.linalg.norm(x1 - x2)}')
-
-    s = CentroidDetectionError(truth, pred, dmatch, algorithm='hungarian')
-    print(f'Truth index {s.truth_couple}')
-    print(f'Pred index {s.pred_couple}')
-    print(s.get_score_summary())
-    # print(f'False negatives {s.get_false_negatives()}')
-    # print(f'False positives {s.get_false_positives()}')
-
-    ax = axes[1]
-    ax.scatter(truth[:, 0], truth[:, 1], marker='o')
-    ax.scatter(pred[:, 0], pred[:, 1], marker='x')
-    for i in range(len(s.truth_couple)):
-        x1 = truth[s.truth_couple[i]]
-        x2 = pred[s.pred_couple[i]]
-        ax.text(*x1, str(s.truth_couple[i]))
-        ax.text(*x2, str(s.pred_couple[i]))
-        ax.plot([x1[0], x2[0]], [x1[1], x2[1]], 'r-')
-        # print(f'GT {s.truth_couple[i]}, pred {s.pred_couple[i]}, dist {numpy.linalg.norm(x1 - x2)}')
-    plt.show()
+    #
+    # dmatch = 5
+    # nb_pred = 90
+    # nb_gt = 100
+    #
+    # numpy.random.seed(2)
+    #
+    # truth = numpy.random.random_sample((nb_gt, 2)) * 100
+    # pred = numpy.random.random_sample((nb_pred, 2)) * 100
+    #
+    # s = CentroidDetectionError(truth, pred, dmatch, algorithm='nearest')
+    # print(f'Truth index {s.truth_couple}')
+    # print(f'Pred index {s.pred_couple}')
+    # # print(f'False negatives {s.get_false_negatives()}')
+    # # print(f'False positives {s.get_false_positives()}')
+    #
+    # import matplotlib.pyplot as plt
+    # fig, axes = plt.subplots(1, 2, sharex=True, sharey=True)
+    # ax = axes[0]
+    # ax.scatter(truth[:, 0], truth[:, 1], marker='o')
+    # ax.scatter(pred[:, 0], pred[:, 1], marker='x')
+    # for i in range(len(s.truth_couple)):
+    #     x1 = truth[s.truth_couple[i]]
+    #     x2 = pred[s.pred_couple[i]]
+    #     ax.text(*x1, str(s.truth_couple[i]))
+    #     ax.text(*x2, str(s.pred_couple[i]))
+    #     ax.plot([x1[0], x2[0]], [x1[1], x2[1]], 'r-')
+    #     # print(f'GT {s.truth_couple[i]}, pred {s.pred_couple[i]}, dist {numpy.linalg.norm(x1 - x2)}')
+    #
+    # s = CentroidDetectionError(truth, pred, dmatch, algorithm='hungarian')
+    # print(f'Truth index {s.truth_couple}')
+    # print(f'Pred index {s.pred_couple}')
+    # print(s.get_score_summary())
+    # # print(f'False negatives {s.get_false_negatives()}')
+    # # print(f'False positives {s.get_false_positives()}')
+    #
+    # ax = axes[1]
+    # ax.scatter(truth[:, 0], truth[:, 1], marker='o')
+    # ax.scatter(pred[:, 0], pred[:, 1], marker='x')
+    # for i in range(len(s.truth_couple)):
+    #     x1 = truth[s.truth_couple[i]]
+    #     x2 = pred[s.pred_couple[i]]
+    #     ax.text(*x1, str(s.truth_couple[i]))
+    #     ax.text(*x2, str(s.pred_couple[i]))
+    #     ax.plot([x1[0], x2[0]], [x1[1], x2[1]], 'r-')
+    #     # print(f'GT {s.truth_couple[i]}, pred {s.pred_couple[i]}, dist {numpy.linalg.norm(x1 - x2)}')
+    # plt.show()
 
     #############################################
     # Test IOUDetectionError
@@ -696,9 +698,10 @@ if __name__ == '__main__':
     from matplotlib import pyplot, patches
 
     truth, _ = draw.random_shapes(
-        image_shape=(256, 256),
-        max_shapes=10,
-        min_shapes=5,
+        image_shape=(1024, 1024),
+        max_shapes=200,
+        min_shapes=150,
+        max_size=100,
         min_size=25,
         multichannel=False,
         random_seed=42
@@ -706,17 +709,19 @@ if __name__ == '__main__':
     truth = abs(255 - truth)
 
     predicted, _ = draw.random_shapes(
-        image_shape=(256, 256),
-        max_shapes=15,
-        min_shapes=5,
+        image_shape=(1024, 1024),
+        max_shapes=200,
+        min_shapes=150,
+        max_size=100,
         min_size=25,
         multichannel=False,
         random_seed=42
     )
 
     # predicted = abs(255 - predicted)
-    # predicted = numpy.roll(truth, 5, axis=1)
-    predicted = truth
+    truth = measure.label(truth)
+    predicted = numpy.roll(truth, 5, axis=1)
+    # predicted = truth
 
     # Creates a split obj
     predicted[:, 140] = 0
