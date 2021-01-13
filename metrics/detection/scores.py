@@ -527,11 +527,7 @@ class IOUDetectionError(DetectionError):
 
         :returns : A `list` of regionprops of the split truth objects
         """
-        if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
-            self.truth_couple, self.pred_couple = [], []
-        else:
-            self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
-
+        cost_matrix = self.cost_matrix >= threshold
         regionprops = measure.regionprops(self.truth)
         split_objects = numpy.sum(cost_matrix, axis=1) >= 2 # at least 2 detections
         return [rprop for rprop, so in zip(regionprops, split_objects) if so]
@@ -546,11 +542,7 @@ class IOUDetectionError(DetectionError):
 
         :returns : A `list` of regionprops of the merged truth objects
         """
-        if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
-            self.truth_couple, self.pred_couple = [], []
-        else:
-            self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
-
+        cost_matrix = self.cost_matrix >= threshold
         regionprops = measure.regionprops(self.predicted)
         merged_objects = numpy.sum(cost_matrix, axis=0) >= 2 # at least 2 detections
         return [rprop for rprop, mo in zip(regionprops, merged_objects) if mo]
