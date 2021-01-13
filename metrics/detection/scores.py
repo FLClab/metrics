@@ -489,7 +489,11 @@ class IOUDetectionError(DetectionError):
 
         :returns : A `list` of regionprops of the missed objects
         """
-        cost_matrix = self.cost_matrix >= threshold
+        if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
+            self.truth_couple, self.pred_couple = [], []
+        else:
+            self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
+
         regionprops = measure.regionprops(self.truth)
         false_negatives = self.get_false_negatives()
         return [regionprops[fn] for fn in false_negatives]
@@ -504,7 +508,11 @@ class IOUDetectionError(DetectionError):
 
         :returns : A `list` of regionprops of the extra objects
         """
-        cost_matrix = self.cost_matrix >= threshold
+        if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
+            self.truth_couple, self.pred_couple = [], []
+        else:
+            self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
+
         regionprops = measure.regionprops(self.predicted)
         false_positives = self.get_false_positives()
         return [regionprops[fp] for fp in false_positives]
@@ -519,7 +527,11 @@ class IOUDetectionError(DetectionError):
 
         :returns : A `list` of regionprops of the split truth objects
         """
-        cost_matrix = self.cost_matrix >= threshold
+        if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
+            self.truth_couple, self.pred_couple = [], []
+        else:
+            self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
+
         regionprops = measure.regionprops(self.truth)
         split_objects = numpy.sum(cost_matrix, axis=1) >= 2 # at least 2 detections
         return [rprop for rprop, so in zip(regionprops, split_objects) if so]
@@ -534,7 +546,11 @@ class IOUDetectionError(DetectionError):
 
         :returns : A `list` of regionprops of the merged truth objects
         """
-        cost_matrix = self.cost_matrix >= threshold
+        if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
+            self.truth_couple, self.pred_couple = [], []
+        else:
+            self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
+
         regionprops = measure.regionprops(self.predicted)
         merged_objects = numpy.sum(cost_matrix, axis=0) >= 2 # at least 2 detections
         return [rprop for rprop, mo in zip(regionprops, merged_objects) if mo]
