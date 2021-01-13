@@ -47,10 +47,11 @@ class DetectionError:
 
         :returns : The index of truth and predicted couples
         """
-        dist_sorted = numpy.argsort(self.cost_matrix.ravel())
+        raveled_cost_matrix = self.cost_matrix.ravel()
+        dist_sorted = numpy.argsort(raveled_cost_matrix)
         truth_couple, pred_couple = [], []
         for arg in dist_sorted:
-            if distances[arg] > threshold:
+            if raveled_cost_matrix[arg] > threshold:
                 break
             where = (arg // self.cost_matrix.shape[1], arg - arg // self.cost_matrix.shape[1] * self.cost_matrix.shape[1])
             if (where[0] in truth_couple) or (where[1] in pred_couple):
@@ -181,6 +182,30 @@ class DetectionError:
             return numpy.array(list(set(range(self.cost_matrix.shape[0])) - set(self.truth_couple)))
         return numpy.array([])
 
+    def get_score_summary(self, keys=None):
+        """
+        Computes all the scores in a `dict`
+
+        :param keys: A `list` of scores to return
+
+        :returns : A `dict` of scores
+        """
+        if isinstance(keys, (list, tuple)):
+            return {
+                key : getattr(self, key) for key in keys
+            }
+        return {
+            "true_positive" : self.true_positive,
+            "false_positive" : self.false_positive,
+            "false_negative" : self.false_negative,
+            "fnr" : self.fnr,
+            "accuracy" : self.accuracy,
+            "precision" : self.precision,
+            "recall" : self.recall,
+            "f1_score" : self.f1_score,
+            "jaccard" : self.jaccard
+        }
+
     @property
     def true_positive(self):
         """
@@ -224,7 +249,7 @@ class DetectionError:
 
         :returns : A false negative rate score
         """
-        return self.false_negative / (sel.true_positive + self.false_positive)
+        return 1 - self.recall
 
     @property
     def fpr(self):
@@ -245,7 +270,11 @@ class DetectionError:
 
         :returns : An accuracy score
         """
-        return len(self.pred_couple) / self.cost_matrix.shape[0]
+        # No truth and no prediction is an accuracy of 1
+        if all([shape == 0 for shape in self.cost_matrix.shape]):
+            return 1.
+        # Add numerical stability with 1e-6
+        return len(self.pred_couple) / (self.cost_matrix.shape[0] + 1e-6)
 
     @property
     def precision(self):
@@ -254,7 +283,11 @@ class DetectionError:
 
         :returns : A precision score
         """
-        return self.true_positive / (self.true_positive + self.false_positive)
+        if all([shape == 0 for shape in self.cost_matrix.shape]):
+            # Same behavior as in default sklearn
+            return 0.
+        # Add numerical stability with 1e-6
+        return self.true_positive / (self.true_positive + self.false_positive + 1e-6)
 
     @property
     def recall(self):
@@ -263,7 +296,11 @@ class DetectionError:
 
         :returns : A recall score
         """
-        return self.true_positive / (self.true_positive + self.false_negative)
+        if all([shape == 0 for shape in self.cost_matrix.shape]):
+            # Same behavior as in default sklearn
+            return 0.
+        # Add numerical stability with 1e-6
+        return self.true_positive / (self.true_positive + self.false_negative + 1e-6)
 
     @property
     def f1_score(self):
@@ -274,9 +311,7 @@ class DetectionError:
         """
         prec = self.precision
         rec = self.recall
-        if (prec == 0) and (rec == 0):
-            return 0
-        return 2 * (prec * rec) / (prec + rec)
+        return 2 * (prec * rec) / (prec + rec + 1e-6)
 
     @property
     def jaccard(self):
@@ -310,17 +345,17 @@ class CentroidDetectionError(DetectionError):
             algorithm=algorithm
         )
 
-        # Returns truth_couple and pred_couple to 0 if truth or predicted are empty
-        if (len(truth) < 1) or (len(predicted) < 1):
-            self.truth_couple, self.pred_couple = [], []
-        else:
-            self.truth_couple, self.pred_couple = self.assign(threshold=threshold)
+        self.truth_couple, self.pred_couple = self.assign(threshold=threshold)
 
     def compute_cost_matrix(self):
         """
         Computes the cost matrix between all objects
         """
-        self.cost_matrix = spatial.distance.cdist(self.truth, self.predicted, metric='euclidean')
+        # Returns truth_couple and pred_couple to 0 if truth or predicted are empty
+        if (len(self.truth) < 1) or (len(self.predicted) < 1):
+            self.cost_matrix = numpy.ones((len(self.truth), len(self.predicted))) * 1e+6
+        else:
+            self.cost_matrix = spatial.distance.cdist(self.truth, self.predicted, metric='euclidean')
 
 class IOUDetectionError(DetectionError):
     """
@@ -364,6 +399,40 @@ class IOUDetectionError(DetectionError):
         self.truth_couple, self.pred_couple = None, None
 
         self.compute_cost_matrix()
+
+    def get_score_summary(self, threshold=0.5, keys=None):
+        """
+        Computes all the scores in a `dict`.
+
+        NOTE. We need to recalculate the assignement to be ensure that truth_couple
+              and pred_couple are well defined.
+
+        :param threshold: (optional) A `float` of minimum threshold (default : 0.5)
+        :param keys: (optional) A `list` of scores to return (default : all scores)
+
+        :returns : A `dict` of scores
+        """
+        # Returns truth_couple and pred_couple to 0 if truth or predicted are empty
+        if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
+            self.truth_couple, self.pred_couple = [], []
+        else:
+            self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
+
+        if isinstance(keys, (list, tuple)):
+            return {
+                key : getattr(self, key) for key in keys
+            }
+        return {
+            "true_positive" : self.true_positive,
+            "false_positive" : self.false_positive,
+            "false_negative" : self.false_negative,
+            "fnr" : self.fnr,
+            "accuracy" : self.accuracy,
+            "precision" : self.precision,
+            "recall" : self.recall,
+            "f1_score" : self.f1_score,
+            "jaccard" : self.jaccard
+        }
 
     def get_f1_score(self, threshold=0.5):
         """
@@ -578,6 +647,8 @@ if __name__ == '__main__':
     s = CentroidDetectionError(truth, pred, dmatch, algorithm='nearest')
     print(f'Truth index {s.truth_couple}')
     print(f'Pred index {s.pred_couple}')
+    # print(f'False negatives {s.get_false_negatives()}')
+    # print(f'False positives {s.get_false_positives()}')
 
     import matplotlib.pyplot as plt
     fig, axes = plt.subplots(1, 2, sharex=True, sharey=True)
@@ -590,11 +661,14 @@ if __name__ == '__main__':
         ax.text(*x1, str(s.truth_couple[i]))
         ax.text(*x2, str(s.pred_couple[i]))
         ax.plot([x1[0], x2[0]], [x1[1], x2[1]], 'r-')
-        print(f'GT {s.truth_couple[i]}, pred {s.pred_couple[i]}, dist {numpy.linalg.norm(x1 - x2)}')
+        # print(f'GT {s.truth_couple[i]}, pred {s.pred_couple[i]}, dist {numpy.linalg.norm(x1 - x2)}')
 
     s = CentroidDetectionError(truth, pred, dmatch, algorithm='hungarian')
     print(f'Truth index {s.truth_couple}')
     print(f'Pred index {s.pred_couple}')
+    print(s.get_score_summary())
+    # print(f'False negatives {s.get_false_negatives()}')
+    # print(f'False positives {s.get_false_positives()}')
 
     ax = axes[1]
     ax.scatter(truth[:, 0], truth[:, 1], marker='o')
@@ -605,7 +679,7 @@ if __name__ == '__main__':
         ax.text(*x1, str(s.truth_couple[i]))
         ax.text(*x2, str(s.pred_couple[i]))
         ax.plot([x1[0], x2[0]], [x1[1], x2[1]], 'r-')
-        print(f'GT {s.truth_couple[i]}, pred {s.pred_couple[i]}, dist {numpy.linalg.norm(x1 - x2)}')
+        # print(f'GT {s.truth_couple[i]}, pred {s.pred_couple[i]}, dist {numpy.linalg.norm(x1 - x2)}')
     plt.show()
 
     #############################################
@@ -648,9 +722,7 @@ if __name__ == '__main__':
 
     s = IOUDetectionError(truth, predicted, algorithm="hungarian")
     f1_scores, threshold = s.get_f1_score(threshold=[0.5])
-
-    print(s.cost_matrix)
-    print(f1_scores)
+    print(s.get_score_summary())
 
     s.show()
 
