@@ -398,8 +398,6 @@ class IOUDetectionError(DetectionError):
 
         self.truth_couple, self.pred_couple = None, None
 
-        self.compute_cost_matrix()
-
     def get_score_summary(self, threshold=0.5, keys=None):
         """
         Computes all the scores in a `dict`.
