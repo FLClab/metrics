@@ -23,17 +23,40 @@ def confusion_matrix(truth, predicted, normalized=True):
 
 def iou(truth, predicted):
     """
-    Computes the intersection over union
+    Computes the intersection over union. If truth and predicted are both labeled
+    images, a matrix is returned between each elements.
 
-    :param truth: A 2D binary `numpy.ndarray` of ground truth
-    :param predicted: A 2D binary `numpy.ndarray` of prediction
+    :param truth: A 2D int `numpy.ndarray` of ground truth
+    :param predicted: A 2D int `numpy.ndarray` of prediction
 
-    :returns : Intersection over union
+    :returns : A 2D `numpy.ndarray` of intersection over union
     """
-    truth, predicted = truth.astype(bool), predicted.astype(bool)
-    intersection = (truth * predicted).sum()
-    union = (truth + predicted).sum()
-    return intersection / union
+    # Count objects
+    true_objects = len(numpy.unique(truth))
+    pred_objects = len(numpy.unique(predicted))
+
+    # Compute intersection
+    h = numpy.histogram2d(truth.flatten(), predicted.flatten(), bins=(true_objects,pred_objects))
+    intersection = h[0]
+
+    # Area of objects
+    area_true = numpy.histogram(truth, bins=true_objects)[0]
+    area_pred = numpy.histogram(predicted, bins=pred_objects)[0]
+
+    # Calculate union
+    area_true = numpy.expand_dims(area_true, -1)
+    area_pred = numpy.expand_dims(area_pred, 0)
+    union = area_true + area_pred - intersection
+
+    # Exclude background from the analysis
+    intersection = intersection[1:,1:]
+    union = union[1:,1:]
+
+    # Compute Intersection over Union
+    union[union == 0] = 1e-9
+    IOU = intersection/union
+
+    return IOU
 
 def dice(truth, predicted):
     """

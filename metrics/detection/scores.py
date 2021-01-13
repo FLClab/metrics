@@ -549,20 +549,7 @@ class IOUDetectionError(DetectionError):
         """
         Computes the cost matrix between all objects
         """
-        from tqdm import tqdm
-
-        # Masks without 0
-        masks_truth = self.truth == numpy.unique(self.truth)[1:, numpy.newaxis, numpy.newaxis]
-        masks_prediction = self.predicted == numpy.unique(self.predicted)[1:, numpy.newaxis, numpy.newaxis]
-
-        self.cost_matrix = numpy.zeros((len(masks_truth), len(masks_prediction)))
-        for j, mask_truth in enumerate(tqdm(masks_truth)):
-            for i, mask_prediction in enumerate(masks_prediction):
-                if numpy.any(mask_truth * mask_prediction):
-                    iou = commons.iou(mask_truth, mask_prediction)
-                    self.cost_matrix[j, i] = iou
-                else:
-                    self.cost_matrix[j, i] = 0.
+        self.cost_matrix = commons.iou(self.truth, self.predicted)
 
     def show(self, threshold=0.5, axes=None):
         """
