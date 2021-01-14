@@ -4,7 +4,7 @@ import warnings
 
 from scipy import spatial, optimize
 from skimage import measure
-from matplotlib import pyplot
+from matplotlib import pyplot, patches
 
 from metrics import commons
 
