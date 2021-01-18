@@ -486,15 +486,34 @@ class IOUDetectionError(DetectionError):
         :param threshold: A `float` to threshold the cost matrix
 
         :returns : A `list` of regionprops of the missed objects
+                   A `numpy.ndarray` of threshold used
         """
-        if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
-            self.truth_couple, self.pred_couple = [], []
-        else:
-            self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
+        # if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
+        #     self.truth_couple, self.pred_couple = [], []
+        # else:
+        #     self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
+        #
+        # regionprops = list(sorted(measure.regionprops(self.truth), key = lambda rprop : rprop.label))
+        # false_negatives = self.get_false_negatives()
+        # return [regionprops[fn] for fn in false_negatives]
 
-        regionprops = measure.regionprops(self.truth)
-        false_negatives = self.get_false_negatives()
-        return [regionprops[fn] for fn in false_negatives]
+        if isinstance(threshold, float):
+            thresholds = [threshold]
+        elif isinstance(threshold, (list, tuple, numpy.ndarray)):
+            thresholds = threshold
+
+        false_negatives = []
+        for threshold in thresholds:
+            if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
+                self.truth_couple, self.pred_couple = [], []
+            else:
+                self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
+
+            regionprops = list(sorted(measure.regionprops(self.truth), key = lambda rprop : rprop.label))
+            false_negative = self.get_false_negatives()
+            false_negatives.append([regionprops[fn] for fn in false_negative])
+
+        return false_negatives, numpy.array(thresholds)
 
     def get_extra_objects(self, threshold=0.7):
         """
@@ -505,15 +524,34 @@ class IOUDetectionError(DetectionError):
         :param threshold: A `float` to threshold the cost matrix
 
         :returns : A `list` of regionprops of the extra objects
+                   A `numpy.ndarray` of threshold used
         """
-        if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
-            self.truth_couple, self.pred_couple = [], []
-        else:
-            self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
+        # if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
+        #     self.truth_couple, self.pred_couple = [], []
+        # else:
+        #     self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
+        #
+        # regionprops = list(sorted(measure.regionprops(self.predicted), key = lambda rprop : rprop.label))
+        # false_positives = self.get_false_positives()
+        # return [regionprops[fp] for fp in false_positives]
 
-        regionprops = measure.regionprops(self.predicted)
-        false_positives = self.get_false_positives()
-        return [regionprops[fp] for fp in false_positives]
+        if isinstance(threshold, float):
+            thresholds = [threshold]
+        elif isinstance(threshold, (list, tuple, numpy.ndarray)):
+            thresholds = threshold
+
+        false_positives = []
+        for threshold in thresholds:
+            if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
+                self.truth_couple, self.pred_couple = [], []
+            else:
+                self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
+
+            regionprops = list(sorted(measure.regionprops(self.predicted), key = lambda rprop : rprop.label))
+            false_positive = self.get_false_positives()
+            false_positives.append([regionprops[fp] for fp in false_positive])
+
+        return false_positives, numpy.array(thresholds)
 
     def get_split_objects(self, threshold=0.1):
         """
@@ -524,11 +562,21 @@ class IOUDetectionError(DetectionError):
         :param threshold: A `float` to threshold the cost matrix
 
         :returns : A `list` of regionprops of the split truth objects
+                   A `numpy.ndarray` of threshold used
         """
-        cost_matrix = self.cost_matrix >= threshold
-        regionprops = measure.regionprops(self.truth)
-        split_objects = numpy.sum(cost_matrix, axis=1) >= 2 # at least 2 detections
-        return [rprop for rprop, so in zip(regionprops, split_objects) if so]
+        if isinstance(threshold, float):
+            thresholds = [threshold]
+        elif isinstance(threshold, (list, tuple, numpy.ndarray)):
+            thresholds = threshold
+
+        split_objects = []
+        for threshold in thresholds:
+            cost_matrix = self.cost_matrix >= threshold
+            regionprops = list(sorted(measure.regionprops(self.truth), key = lambda rprop : rprop.label))
+            split_object = numpy.sum(cost_matrix, axis=1) >= 2 # at least 2 detections
+            split_objects.append([rprop for rprop, so in zip(regionprops, split_object) if so])
+
+        return split_objects, thresholds
 
     def get_merged_objects(self, threshold=0.1):
         """
@@ -540,10 +588,19 @@ class IOUDetectionError(DetectionError):
 
         :returns : A `list` of regionprops of the merged truth objects
         """
-        cost_matrix = self.cost_matrix >= threshold
-        regionprops = measure.regionprops(self.predicted)
-        merged_objects = numpy.sum(cost_matrix, axis=0) >= 2 # at least 2 detections
-        return [rprop for rprop, mo in zip(regionprops, merged_objects) if mo]
+        if isinstance(threshold, float):
+            thresholds = [threshold]
+        elif isinstance(threshold, (list, tuple, numpy.ndarray)):
+            thresholds = threshold
+
+        merged_objects = []
+        for threshold in thresholds:
+            cost_matrix = self.cost_matrix >= threshold
+            regionprops = list(sorted(measure.regionprops(self.predicted), key = lambda rprop : rprop.label))
+            merged_object = numpy.sum(cost_matrix, axis=0) >= 2 # at least 2 detections
+            merged_objects.append([rprop for rprop, mo in zip(regionprops, merged_object) if mo])
+
+        return merged_objects, thresholds
 
     def compute_cost_matrix(self):
         """
@@ -564,52 +621,56 @@ class IOUDetectionError(DetectionError):
         else:
             self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
 
-        missed_objs = self.get_missed_objects()
-        extra_objs = self.get_extra_objects()
-        split_objs = self.get_split_objects()
-        merged_objs = self.get_merged_objects()
+        missed_objs, _ = self.get_missed_objects()
+        extra_objs, _ = self.get_extra_objects()
+        split_objs, _ = self.get_split_objects()
+        merged_objs, _ = self.get_merged_objects()
 
         # Creates the axes
         if isinstance(axes, type(None)):
             fig, axes = pyplot.subplots(1, 2, sharex=True, sharey=True)
 
         axes[0].imshow(self.truth)
-        for obj in missed_objs:
+        for obj in missed_objs[0]:
             min_row, min_col, max_row, max_col = obj.bbox
             rect = patches.Rectangle(
-                xy = (min_col, min_row),
-                width = max_col - min_col,
-                height = max_row - min_row,
-                facecolor="none", edgecolor="red"
+                xy = (min_col - 3, min_row - 3),
+                width = max_col - min_col + 7,
+                height = max_row - min_row + 7,
+                facecolor="none", edgecolor="red",
+                linewidth=1
             )
             axes[0].add_artist(rect)
-        for obj in split_objs:
+        for obj in split_objs[0]:
             min_row, min_col, max_row, max_col = obj.bbox
             rect = patches.Rectangle(
                 xy = (min_col, min_row),
                 width = max_col - min_col,
                 height = max_row - min_row,
-                facecolor="none", edgecolor="yellow"
+                facecolor="none", edgecolor="yellow",
+                linewidth=1
             )
             axes[0].add_artist(rect)
 
         axes[1].imshow(self.predicted)
-        for obj in extra_objs:
+        for obj in extra_objs[0]:
             min_row, min_col, max_row, max_col = obj.bbox
             rect = patches.Rectangle(
-                xy = (min_col, min_row),
-                width = max_col - min_col,
-                height = max_row - min_row,
-                facecolor="none", edgecolor="red"
+                xy = (min_col - 3, min_row - 3),
+                width = max_col - min_col + 7,
+                height = max_row - min_row + 7,
+                facecolor="none", edgecolor="red",
+                linewidth=1
             )
             axes[1].add_artist(rect)
-        for obj in merged_objs:
+        for obj in merged_objs[0]:
             min_row, min_col, max_row, max_col = obj.bbox
             rect = patches.Rectangle(
                 xy = (min_col, min_row),
                 width = max_col - min_col,
                 height = max_row - min_row,
-                facecolor="none", edgecolor="yellow"
+                facecolor="none", edgecolor="yellow",
+                linewidth=1
             )
             axes[1].add_artist(rect)
 
