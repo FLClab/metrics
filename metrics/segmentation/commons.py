@@ -25,15 +25,37 @@ def iou(truth, predicted):
     """
     Computes the intersection over union. If truth and predicted are both labeled
     images, a matrix is returned between each elements.
-
+    
     :param truth: A 2D int `numpy.ndarray` of ground truth
     :param predicted: A 2D int `numpy.ndarray` of prediction
-
+    
     :returns : A 2D `numpy.ndarray` of intersection over union
     """
+    def validate(obj_ids, label):
+        """
+        Validates the label object is monotically increasing
+        
+        :param obj_ids: A `numpy.ndarray` of unique object ids 
+        :param label: A `numpy.ndarray` of labeled objects
+        
+        :returns : A `numpy.ndarray` of monotically labeled objects
+        """
+        if numpy.all(numpy.diff(unique_truth) == 1):
+            return label
+        out = numpy.zeros_like(label)
+        for i, obj_id in enumerate(obj_ids):
+            out[label == obj_id] = i + 1
+        return out
+    
+    # Validates that the labeled objects are monotically increasing
+    unique_truth = numpy.unique(truth)
+    truth = validate(unique_truth, truth)
+    unique_pred = numpy.unique(predicted)
+    predicted = validate(unique_pred, predicted)
+
     # Count objects
-    true_objects = len(numpy.unique(truth))
-    pred_objects = len(numpy.unique(predicted))
+    true_objects = len(unique_truth)
+    pred_objects = len(unique_pred)
 
     # Compute intersection
     h = numpy.histogram2d(truth.flatten(), predicted.flatten(), bins=(true_objects,pred_objects))
