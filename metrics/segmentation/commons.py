@@ -44,7 +44,7 @@ def iou(truth, predicted):
             return label
         out = numpy.zeros_like(label)
         for i, obj_id in enumerate(obj_ids):
-            out[label == obj_id] = i + 1
+            out[label == obj_id] = i
         return out
     
     # Validates that the labeled objects are monotically increasing
