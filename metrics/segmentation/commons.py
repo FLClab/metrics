@@ -40,7 +40,7 @@ def iou(truth, predicted):
         
         :returns : A `numpy.ndarray` of monotically labeled objects
         """
-        if numpy.all(numpy.diff(unique_truth) == 1):
+        if numpy.all(numpy.diff(obj_ids) == 1):
             return label
         out = numpy.zeros_like(label)
         for i, obj_id in enumerate(obj_ids):
