@@ -25,6 +25,17 @@ class DetectionError:
         self.truth = truth
         self.predicted = predicted
         self.algorithm = algorithm
+        self.default_scores = [
+            "true_positive",
+            "false_positive",
+            "false_negative",
+            "fnr",
+            "accuracy",
+            "precision",
+            "recall",
+            "f1_score",
+            "jaccard"
+        ]
 
         # Assign kwargs variables as member variables
         for key, value in kwargs.items():
