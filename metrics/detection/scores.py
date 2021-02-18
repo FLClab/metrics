@@ -152,29 +152,18 @@ class DetectionError:
             return numpy.array(list(set(range(self.cost_matrix.shape[0])) - set(self.truth_couple)))
         return numpy.array([])
 
-    def get_score_summary(self, keys=None):
+    def get_score_summary(self, scores=None):
         """
         Computes all the scores in a `dict`
 
-        :param keys: A `list` of scores to return
+        :param scores: A `list` of scores to return
 
         :returns : A `dict` of scores
         """
-        if isinstance(keys, (list, tuple)):
-            return {
-                key : getattr(self, key) for key in keys
-            }
-        return {
-            "true_positive" : self.true_positive,
-            "false_positive" : self.false_positive,
-            "false_negative" : self.false_negative,
-            "fnr" : self.fnr,
-            "accuracy" : self.accuracy,
-            "precision" : self.precision,
-            "recall" : self.recall,
-            "f1_score" : self.f1_score,
-            "jaccard" : self.jaccard
-        }
+        if not scores:
+            scores = self.default_scores
+        summary = {score : getattr(self, score) for score in scores}
+        return summary
 
     @property
     def true_positive(self):
