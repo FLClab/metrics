@@ -273,6 +273,15 @@ class DetectionError:
         return 2 * (prec * rec) / (prec + rec + 1e-6)
 
     @property
+    def dice(self):
+        """
+        Computes the dice coefficient between the truth and the predictions.
+
+        :returns : A dice coefficient score
+        """
+        return self.f1_score
+
+    @property
     def jaccard(self):
         """
         Computes the Jaccard Index between the truth and the predictions.
