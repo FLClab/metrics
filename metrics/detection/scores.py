@@ -81,8 +81,7 @@ class DetectionError:
         :param threshold: A `float` of threshold to apply
         :param maximize: (optional) Whether to maximize the assignement
 
-        :returns : A `numpy.ndarray` of indices of truth
-                   A `numpy.ndarray` of indices of pred
+        :returns : A `tuple` of truth and predicted coupled
         """
         truth_indices = numpy.arange(self.cost_matrix.shape[0])
         pred_indices = numpy.arange(self.cost_matrix.shape[1])
@@ -117,46 +116,6 @@ class DetectionError:
         pred_couple = pred_indices[pred_couple]
 
         return truth_couple, pred_couple
-
-    # def _assign_hungarian(self):
-    #     """
-    #     Assigns each thruth detections to its nearest predicted detections.
-    #     We consider a positive detections if it lies within a certain distance threshold.
-    #     See `scipy.optimize.linear_sum_assignment` for more details about hungarian algo.
-    #
-    #     :returns : The index of truth and predicted couples
-    #     """
-    #
-    #     truth_indices = numpy.arange(len(self.truth))
-    #     pred_indices = numpy.arange(len(self.predicted))
-    #
-    #     # Compute the pairwise distance matrix
-    #     D = spatial.distance.cdist(self.truth, self.predicted, metric='euclidean')
-    #
-    #     # We remove all points without neighbors in a radius of value `threshold`
-    #     false_positives = numpy.sum(D < self.threshold, axis=0) == 0
-    #     false_negatives = numpy.sum(D < self.threshold, axis=1) == 0
-    #
-    #     # Remove all false positives and false negatives
-    #     D = D[~false_negatives][:, ~false_positives]
-    #     truth_indices = truth_indices[~false_negatives]
-    #     pred_indices = pred_indices[~false_positives]
-    #
-    #     # Apply the hungarian algorithm,
-    #     # using log on the distance helps getting better matches
-    #     # Because of the log, we need to ensure there is no Distance of 0
-    #     truth_couple, pred_couple = optimize.linear_sum_assignment(numpy.log(D + 1e-6))
-    #
-    #
-    #     # Check if all distances are smaller than the threshold
-    #     distances = D[truth_couple, pred_couple]
-    #     truth_couple = truth_couple[distances < self.threshold]
-    #     pred_couple = pred_couple[distances < self.threshold]
-    #
-    #     truth_couple = truth_indices[truth_couple]
-    #     pred_couple = pred_indices[pred_couple]
-    #
-    #     return truth_couple, pred_couple
 
     def compute_cost_matrix(self):
         """
