@@ -92,3 +92,24 @@ def dice(truth, predicted):
     truth, predicted = truth.astype(bool), predicted.astype(bool)
     intersection = (truth * predicted).sum()
     return 2 * intersection / (truth.sum() + predicted.sum())
+
+def bbox_iou(box, boxes, box_area, boxes_area):
+    """Calculates IoU of the given box with the array of the given boxes.
+    
+    :param box: A `numpy.ndarray` of box with size (4, )
+    :param boxes: A `numpy.array` of boxes with size (N, 4)
+    :param box_area: A `float` of the area of the box
+    :param boxes_area: A `numpy.ndarray` area of the boxes
+
+    :returns : A `numpy.ndarray` of IOU of a bbox with other bboxes
+    """
+    # Calculate intersection areas
+    x1 = numpy.maximum(box[0], boxes[:, 0])
+    x2 = numpy.minimum(box[2], boxes[:, 2])
+    y1 = numpy.maximum(box[1], boxes[:, 1])
+    y2 = numpy.minimum(box[3], boxes[:, 3])
+
+    intersection = numpy.maximum(x2 - x1, 0) * numpy.maximum(y2 - y1, 0)
+    union = box_area + boxes_area[:] - intersection[:]
+    iou = intersection / union
+    return iou
