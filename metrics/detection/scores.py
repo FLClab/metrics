@@ -652,6 +652,41 @@ class IOUDetectionError(DetectionError):
             labels=["Extra objects", "Merged objects"],
             loc="lower left"
         )
+        
+class BBOXDetectionError(IOUDetectionError):
+    """
+    Calculates the detection error as a function of IOU from bounding 
+    boxes. 
+    """
+    def __init__(self, truth, predicted, algorithm="hungarian"):
+        """
+        Instantiates the `BBOXDetectionError` class
+        
+        :param truth: A `numpy.ndarray` of labeled objects
+        :param predicted: A `numpy.ndarray` of labeled predicted objects
+        :param algorithm: A `str` of the algorithm to use for association
+        """
+        super().__init__(
+            truth=truth,
+            predicted=predicted,
+            algorithm=algorithm
+        )
+
+        self.truth_couple, self.pred_couple = None, None
+    
+    def compute_cost_matrix(self):
+        """
+        Computes the cost matrix between all objects
+        """
+        if (len(self.truth) == 0) or (len(self.predicted) == 0):
+            self.cost_matrix = numpy.zeros((len(self.truth), len(self.predicted)))
+            return 
+        truth_area = (self.truth[:, 2] - self.truth[:, 0]) * (self.truth[:, 3] - self.truth[:, 1])
+        pred_area = (self.predicted[:, 2] - self.predicted[:, 0]) * (self.predicted[:, 3] - self.predicted[:, 1])
+        
+        self.cost_matrix = numpy.zeros((len(self.truth), len(self.predicted)))
+        for i, (box, area) in enumerate(zip(self.truth, truth_area)):
+            self.cost_matrix[i] = commons.bbox_iou(box, self.predicted, area, pred_area)
 
 if __name__ == '__main__':
 
