@@ -290,6 +290,16 @@ class DetectionError:
         """
         f1 = self.f1_score
         return f1 / (2 - f1)
+    
+    @property
+    def average_precision(self):
+        """
+        Computes the average precision between the truth and the predictions.
+        
+        :returns : An average precision score
+        """
+        # Add numerical stability with 1e-6
+        return self.true_positive / (self.true_positive + self.false_negative + self.false_positive + 1e-6)
 
 
 class CentroidDetectionError(DetectionError):
@@ -444,6 +454,35 @@ class IOUDetectionError(DetectionError):
             # f1_scores.append(f1)
 
         return numpy.array(f1_scores), numpy.array(thresholds)
+    
+    def get_ap(self, threshold=0.5):
+        """
+        Computes the average precision (AP) from the cost matrix given a minimum threshold.
+        The default threshold is 0.5 since it is commonly used.
+
+        :param threshold: A `float` of the minimum threshold
+                          OR A `list` of the minimum thresholds
+
+        :returns : A `numpy.ndarray` of the AP scores
+                   A `numpy.ndarray` of the thresholds
+        """
+        if isinstance(threshold, float):
+            thresholds = [threshold]
+        elif isinstance(threshold, (list, tuple, numpy.ndarray)):
+            thresholds = threshold
+
+        scores = []
+        for threshold in thresholds:
+
+            # Returns truth_couple and pred_couple to 0 if truth or predicted are empty
+            if (not numpy.any(self.truth)) or (not numpy.any(self.predicted)):
+                self.truth_couple, self.pred_couple = [], []
+            else:
+                self.truth_couple, self.pred_couple = self.assign(threshold=threshold, maximize=True)
+
+            scores.append(self.average_precision)
+
+        return numpy.array(scores), numpy.array(thresholds)    
 
     def get_missed_objects(self, threshold=0.7):
         """
