@@ -455,7 +455,7 @@ class IOUDetectionError(DetectionError):
 
         return numpy.array(f1_scores), numpy.array(thresholds)
     
-    def get_ap(self, threshold=0.5):
+    def get_average_precision(self, threshold=0.5):
         """
         Computes the average precision (AP) from the cost matrix given a minimum threshold.
         The default threshold is 0.5 since it is commonly used.
