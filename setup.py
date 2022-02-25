@@ -1,6 +1,8 @@
 import setuptools
 from setuptools import setup
 
+print(setuptools.find_packages(where="metrics"))
+
 setup(
     name="metrics",
     version="0.1",
