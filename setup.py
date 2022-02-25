@@ -10,7 +10,7 @@ setup(
     author="AB",
     url="http://github.com/FLClab/metrics",
 #     packages=["metrics"],
-    packages=setuptools.find_packages(where="metrics"),
+    packages=setuptools.find_packages(where="."),
     install_requires=[
         "scikit-learn",   
     ]
