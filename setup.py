@@ -5,6 +5,9 @@ setup(
     version="0.1",
     description="A metrics package",
     author="AB",
-    url="https://github.com/FLClab/metrics",
+    url="http://github.com/FLClab/metrics",
     packages=["metrics"],
+    install_requires=[
+        "scikit-learn",   
+    ]
 )
