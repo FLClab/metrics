@@ -1,17 +1,17 @@
 import setuptools
 from setuptools import setup
 
-print(setuptools.find_packages(where="metrics"))
-
 setup(
     name="metrics",
     version="0.1",
-    description="A metrics package",
-    author="AB",
+    description="A metrics package to quantify the performance of ML/DL methods",
+    author="AB & GL",
     url="http://github.com/FLClab/metrics",
-#     packages=["metrics"],
     packages=setuptools.find_packages(where="."),
     install_requires=[
-        "scikit-learn",   
+        "numpy",
+        "scikit-learn",
+        "scipy",
+        "matplotlib"
     ]
 )

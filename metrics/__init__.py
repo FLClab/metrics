@@ -1,9 +1,9 @@
 
-# from .segmentation import commons
-# from .segmentation.avd import AVD
-# from .segmentation.sbd import SBD
+from metrics.segmentation import commons
+from metrics.segmentation.avd import AVD
+from metrics.segmentation.sbd import SBD
 
-# from .detection.froc import FROC
-# from .detection.scores import CentroidDetectionError, IOUDetectionError
+from metrics.detection.froc import FROC
+from metrics.detection.scores import CentroidDetectionError, IOUDetectionError
 
-# from .aogm import CTCMeasure
+from metrics.aogm import CTCMeasure

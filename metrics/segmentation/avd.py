@@ -5,7 +5,7 @@ from skimage import draw, morphology
 from scipy import signal, spatial
 from matplotlib import pyplot
 
-from . import utils
+from metrics import utils
 
 def remove_intersection(truth, predicted):
     """

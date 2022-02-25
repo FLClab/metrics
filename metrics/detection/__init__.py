@@ -1,5 +1,5 @@
 
 from . import scores
-from .. import utils
+from metrics import utils
 
 from .scores import CentroidDetectionError, IOUDetectionError
