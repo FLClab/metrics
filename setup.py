@@ -1,4 +1,5 @@
-from distutils.core import setup
+import setuptools
+from setuptools import setup
 
 setup(
     name="metrics",
@@ -6,7 +7,8 @@ setup(
     description="A metrics package",
     author="AB",
     url="http://github.com/FLClab/metrics",
-    packages=["metrics"],
+#     packages=["metrics"],
+    packages=setuptools.find_packages(where="metrics"),
     install_requires=[
         "scikit-learn",   
     ]
