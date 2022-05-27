@@ -4,7 +4,12 @@ This package contains simple implementations of common metrics used in segmentat
 
 ## Install
 
-To install the package, _i.e._ to be able to use localy this package, one should do the following 
+Install the package through GitHub.
+```bash
+pip install git+https://github.com/FLClab/metrics.git
+```
+
+OR, to install the package, _i.e._ to be able to use localy this package, one should do the following 
 ```bash
 git clone https://github.com/FLClab/metrics
 pip install -e metrics
