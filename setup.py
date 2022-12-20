@@ -15,6 +15,5 @@ setup(
         "matplotlib",
         "tifffile"
     ],
-    package_dir={"": "."},
     include_package_data=True    
 )
