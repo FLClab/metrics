@@ -15,5 +15,6 @@ setup(
         "matplotlib",
         "tifffile"
     ],
-    include_package_data=True
+    include_package_data=True,
+    package_data={"":["DETMeasure", "SEGMeasure", "TRAMeasure"]}
 )
