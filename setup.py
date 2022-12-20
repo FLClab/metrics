@@ -17,7 +17,7 @@ setup(
     ],
     include_package_data=True,
     package_data={
-        "metrics.aogm.Linux":["*Measure"],
-        "metrics.aogm.Mac":["*Measure"]
+        "metrics.aogm.Linux":["*"],
+        "metrics.aogm.Mac":["*"]
     }
 )
