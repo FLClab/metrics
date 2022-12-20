@@ -15,9 +15,8 @@ setup(
         "matplotlib",
         "tifffile"
     ],
-    include_package_data=True,
-    package_data={
-        "metrics.aogm.Linux":["*"],
-        "metrics.aogm.Mac":["*"]
-    }
+    package_data=[
+        "metrics/aogm/Linux/*",
+        "metrics/aogm/Mac/*"
+    ]
 )
