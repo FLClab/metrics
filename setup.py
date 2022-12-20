@@ -14,5 +14,6 @@ setup(
         "scipy",
         "matplotlib",
         "tifffile"
-    ]
+    ],
+    include_package_data=True
 )
