@@ -12,6 +12,7 @@ setup(
         "numpy",
         "scikit-learn",
         "scipy",
-        "matplotlib"
+        "matplotlib",
+        "tifffile"
     ]
 )

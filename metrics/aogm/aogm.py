@@ -3,6 +3,8 @@ import subprocess
 import os, shutil
 import glob
 import platform
+import tifffile
+import numpy
 
 PLATFORMOS = {
     "Darwin" : "Mac",
@@ -23,7 +25,7 @@ class CTCMeasure:
         :param predictions: A `list` of predicted segmentations (same order as truths)
         :param num_digits: An `int` of the number of digits to use for the images
         :param tmp_folder: A `str` of the location of copies files
-        :param verbose: A `bool` wether metric calculation should be verbosed 
+        :param verbose: A `bool` wether metric calculation should be verbosed
         """
         self.truths = truths
         self.predictions = predictions
@@ -96,11 +98,18 @@ class CTCMeasure:
         # Copies truths and predictions files to tmp folder
         for i, file in enumerate(self.truths):
             idx = str(i).zfill(self.num_digits)
-            shutil.copy(file, os.path.join(self.tmp_folder, "01_GT", "SEG", f"man_seg{idx}.tif"))
-            shutil.copy(file, os.path.join(self.tmp_folder, "01_GT", "TRA", f"man_track{idx}.tif"))
+            if isinstance(file, str):
+                shutil.copy(file, os.path.join(self.tmp_folder, "01_GT", "SEG", f"man_seg{idx}.tif"))
+                shutil.copy(file, os.path.join(self.tmp_folder, "01_GT", "TRA", f"man_track{idx}.tif"))
+            else:
+                tifffile.imsave(os.path.join(self.tmp_folder, "01_GT", "SEG", f"man_seg{idx}.tif"), file.astype(numpy.uint16))
+                tifffile.imsave(os.path.join(self.tmp_folder, "01_GT", "TRA", f"man_track{idx}.tif"), file.astype(numpy.uint16))
         for i, file in enumerate(self.predictions):
             idx = str(i).zfill(self.num_digits)
-            shutil.copy(file, os.path.join(self.tmp_folder, "01_RES", f"mask{idx}.tif"))
+            if isinstance(file, str):
+                shutil.copy(file, os.path.join(self.tmp_folder, "01_RES", f"mask{idx}.tif"))
+            else:
+                tifffile.imsave(os.path.join(self.tmp_folder, "01_RES", f"mask{idx}.tif"), file.astype(numpy.uint16))
 
     def remove_folder(self):
         """
