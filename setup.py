@@ -16,7 +16,6 @@ setup(
         "tifffile"
     ],
     package_data={
-        "":["metrics/aogm/Linux/*",
-            "metrics/aogm/Mac/*"]
+        "":["*"]
     }
 )
