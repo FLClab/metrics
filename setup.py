@@ -15,7 +15,6 @@ setup(
         "matplotlib",
         "tifffile"
     ],
-    package_data={
-        "":["*"]
-    }
+    package_dir={"": "metrics"},
+    include_package_data=True    
 )
